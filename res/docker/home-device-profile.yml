@@ -1,0 +1,81 @@
+name: "home-device-profile"
+manufacturer: "HeathKang"
+# model: "CoolMasterNet"
+labels:
+- "Modbus"
+- "Thermometer"
+description: "Home thermometer simulator"
+
+deviceResources:
+-
+  name: "temp"
+  description: "temprature"
+  attributes:
+    { primaryTable: "HOLDING_REGISTERS", startingAddress: "1" }
+  properties:
+    value:
+      { type: "FLOAT32", readWrite: "R", scale: "0.1", minimum: "16.0", maximum: "20.0", defaultValue: "16.0"}
+    units:
+      { type: "String", readWrite: "R", defaultValue: "degrees Celsius"}
+
+-
+  name: "humidity"
+  description: "humidity"
+  attributes:
+    { primaryTable: "HOLDING_REGISTERS", startingAddress: "3" }
+  properties:
+    value:
+      { type: "FLOAT32", readWrite: "RW", scale: "0.01", minimum: "0.41", maximum: "0.61", defaultValue: "0.51"}
+    units:
+      { type: "String", readWrite: "R", defaultValue: "degrees Celsius"}
+
+resources:
+-
+  name: "temp"
+  get:
+  - { index: "1", operation: "set", object: "temp", parameter: "temp", property: "value"}
+-
+  name: "humidity"
+  get:
+  - { index: "1", operation: "get", object: "humidity", parameter: "humidity", property: "value" }
+  set:
+  - { index: "1", operation: "set", object: "humidity", parameter: "humidity", property: "value" }
+
+commands:
+## path is in device host url not command!
+-
+  name: "temp"
+  get:
+    path: "/api/v1/device/{deviceId}/temp"
+    responses:
+    - code: "200"
+      description: "Get the temperature"
+      expectedValues: ["temp"]
+    - code: "503"
+      description: "service unavailable"
+      expectedValues: ["read data error"]
+-
+  name: "humidity"
+  get:
+    path: "/api/v1/device/{deviceId}/humidity"
+    responses:
+    -
+      code: "200"
+      description: "Get the humidity"
+      expectedValues: ["humidity"]
+    -
+      code: "503"
+      description: "service unavailable"
+      expectedValues: ["read data error"]
+  put:
+    path: "/api/v1/device/{deviceId}/humidity"
+    parameterNames: ["humidity"]
+    responses:
+    -
+      code: "204"
+      description: "Set the humidity"
+      expectedValues: []
+    -
+      code: "503"
+      description: "service unavailable"
+      expectedValues: ["read data error"]
